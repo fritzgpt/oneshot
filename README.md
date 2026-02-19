@@ -14,7 +14,11 @@
   [Specific User Request]
 
 # generate patterns
-./oneshot.py generate \
+./oneshot.py pattern generate \
+  --output-dir|-o=dir-path
   --template-dir|-t=dir-path
   --template-dir|-t=dir-path-2
+
+# list patterns
+./oneshot.py pattern list
 ```

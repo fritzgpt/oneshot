@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import select
@@ -22,13 +23,15 @@ oneshot = typer.Typer(help="Oneshot AI CLI")
 shoot = typer.Typer(help="Shoot query against the AI")
 pattern = typer.Typer(help="Manage your Fabric pattern files")
 list_patterns = typer.Typer(help="List Fabric pattern files")
+generate_patterns = typer.Typer(help="Generate Fabric pattern files with gomplate")
 oneshot.add_typer(shoot)
 oneshot.add_typer(pattern, name="pattern")
 pattern.add_typer(list_patterns)
+pattern.add_typer(generate_patterns)
 
 @shoot.command()
 def shoot(
-    pattern: str = typer.Option("general", "--pattern", "-p", help="Predefined prompt pattern"),
+    pattern_name: str = typer.Option("general", "--pattern", "-p", help="Predefined prompt pattern"),
     pattern_dir: str = typer.Option("", "--pattern-dir", help="Directory where prompt patterns are located", envvar="OS_PATTERN_DIR"),
     env_file: str = typer.Option("", "--env-file", help="Path to file with env vars with API credentials in Fabric format", envvar="OS_ENV_FILE"),
     with_tools: bool = typer.Option(False, "--with-tools", "-t", help="Activate MCP Tool usage"),
@@ -42,7 +45,7 @@ def shoot(
         pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
 
     stdin = read_stdin_or_continue()
-    pattern_content = p.get_pattern(pattern_dir, pattern)
+    pattern_content = p.get_pattern(pattern_dir, pattern_name)
 
     if pattern_content is None:
         return
@@ -52,19 +55,20 @@ def shoot(
         return
 
     logging.info(f"Calling model: {model}")
-    logging.info(f"Using pattern: {pattern}")
+    logging.info(f"Using pattern: {pattern_name}")
 
+    llm_resp: str = ""
     if model.startswith("claude"):
-        llm_response = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt, stdin))
+        llm_resp = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
     elif model.startswith("gpt"):
-        llm_response = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt, stdin))
+        llm_resp = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
     elif model.startswith("grok"):
-        llm_response = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt, stdin))
+        llm_resp = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
 
     if output_to_disk:
-        generator.write_to_disk(llm_response)
+        generator.write_to_disk(llm_resp)
     else:
-        print(llm_response)
+        print(llm_resp)
 
 @list_patterns.command(name="list")
 def list_patterns(
@@ -74,6 +78,24 @@ def list_patterns(
         pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
     logging.info(f"Listing patterns in: {pattern_dir}")
     p.list_patterns(pattern_dir)
+
+@generate_patterns.command(name="generate")
+def generate_patterns(
+        output_dir: str = typer.Option(
+            ...,
+            "--output-dir", "-o",
+            help="Output directory for generated pattern files"
+        ),
+        pattern_template_dir: List[str] = typer.Option(
+            ...,
+            "--template-dir", "-t",
+            help="Template directories with Fabric pattern templates to process (can be used multiple times)"
+        )
+):
+    if not os.path.exists(output_dir):
+        logging.error(f"Output dir does not exist: {output_dir}")
+        return
+    asyncio.run(generator.generate_patterns(output_dir, pattern_template_dir))
 
 def read_stdin_or_continue(timeout=0.0):
     """Read STDIN if available, otherwise return None."""
