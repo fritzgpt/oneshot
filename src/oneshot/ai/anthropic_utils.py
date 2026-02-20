@@ -1,3 +1,4 @@
+import logging
 import os
 
 import anthropic
@@ -5,15 +6,14 @@ import mcp
 import mcp.client
 from mcp.client.streamable_http import streamable_http_client
 
-MAX_TOKENS=1024
 
 def call_anthropic(model: str, pattern: str, prompt: str) -> str:
     client = anthropic.Anthropic(
         api_key=os.environ.get("ANTHROPIC_API_KEY"),  # This is the default and can be omitted
     )
+    messages = create_messages(pattern, prompt)
     message = client.messages.create(
-        max_tokens=MAX_TOKENS,
-        messages = create_messages(pattern, prompt),
+        messages =messages,
         model=model
     )
     return str(message.content[0].text)

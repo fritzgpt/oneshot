@@ -1,3 +1,4 @@
+import logging
 import os
 
 from xai_sdk import Client
@@ -10,9 +11,10 @@ def call_xai(model: str, pattern: str, prompt: str):
         api_key=os.environ.get("GROKAI_API_KEY"),  # This is the default and can be omitted
     )
 
+    messages = [system(pattern), user(prompt)]
     chat = client.chat.create(
         model=model,
-        messages=[system(pattern), user(prompt)]
+        messages=messages
     )
     response = chat.sample()
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def write_to_disk(content: str):
-    pattern = r'FILENAME:\s*([\w\.-]+\.\w+)'
+    pattern = r'^\s*FILENAME:\s*(.+?)\s*$'
     file_path = ""
     file_content = ""
     for line in content.split("\n"):
@@ -19,6 +19,7 @@ def write_to_disk(content: str):
             file_content += f"{line}\n"
 
     if not write_file(file_content, file_path):
+        logging.warning("Writing back to disk failed. Writing to stdout")
         print(file_content)
 
 

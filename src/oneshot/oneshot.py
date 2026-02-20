@@ -12,8 +12,9 @@ from dotenv import load_dotenv
 import typer
 from typing import List
 
+log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -45,6 +46,7 @@ def shoot(
 
     stdin = read_stdin_or_continue()
     pattern_content = p.get_pattern(pattern_dir, pattern_name)
+    prompt_str: str = " ".join(prompt)
 
     if pattern_content is None:
         return
@@ -60,18 +62,18 @@ def shoot(
     if model.startswith("claude"):
         if mcp_url:
             logging.info(f"Connecting to MCP Server: {mcp_url}")
-            llm_resp = asyncio.run(anthropic.call_anthropic_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin)))
+            llm_resp = asyncio.run(anthropic.call_anthropic_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin)))
         else:
-            llm_resp = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
+            llm_resp = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin))
     elif model.startswith("gpt"):
         if mcp_url:
             logging.info(f"Connecting to MCP Server: {mcp_url}")
-            llm_resp = asyncio.run(openai.call_openai_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin)))
+            llm_resp = asyncio.run(openai.call_openai_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin)))
         else:
-            llm_resp = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
+            llm_resp = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin))
 
     elif model.startswith("grok"):
-        llm_resp = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
+        llm_resp = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin))
 
     if output_to_disk:
         generator.write_to_disk(llm_resp)

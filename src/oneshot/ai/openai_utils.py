@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 from openai import OpenAI
@@ -7,18 +8,18 @@ import mcp
 import mcp.client
 from mcp.client.streamable_http import streamable_http_client
 
+
 def call_openai(model: str, pattern: str, prompt: str) -> str:
     client = create_client()
-    response = client.completions.create(
+    messages = create_messages(pattern, prompt)
+    response = client.responses.create(
         instructions=pattern,
-        input=prompt,
+        input=messages,
         model=model,
     )
     return response.output_text
 
-
 async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt: str) -> str:
-
     async with streamable_http_client(f"{mcp_url}/mcp") as (
             read_stream,
             write_stream,
@@ -67,12 +68,14 @@ async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt:
 
             return "\n".join(final_text)
 
+
 def create_client() -> OpenAI:
     client = OpenAI(
         # This is the default and can be omitted
         api_key=os.environ.get("OPENAI_API_KEY"),
     )
     return client
+
 
 def create_messages(pattern: str, prompt: str):
     return [
@@ -85,6 +88,7 @@ def create_messages(pattern: str, prompt: str):
             "content": prompt,
         }
     ]
+
 
 async def mcp_to_openai_tools(session: mcp.ClientSession) -> list:
     """Convert MCP tools to OpenAI function format."""
