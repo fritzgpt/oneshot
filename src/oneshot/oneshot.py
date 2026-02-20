@@ -105,7 +105,7 @@ def generate_patterns(
     if not os.path.exists(output_dir):
         logging.error(f"Output dir does not exist: {output_dir}")
         return
-    asyncio.run(generator.generate_patterns(output_dir, pattern_template_dir))
+    generator.render_templates(output_dir, pattern_template_dir, {})
 
 def read_stdin_or_continue(timeout=0.0):
     """Read STDIN if available, otherwise return None."""

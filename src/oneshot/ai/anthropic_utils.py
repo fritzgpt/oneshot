@@ -13,12 +13,14 @@ def call_anthropic(model: str, pattern: str, prompt: str) -> str:
         api_key=os.environ.get("ANTHROPIC_API_KEY"),  # This is the default and can be omitted
     )
     messages = create_messages(pattern, prompt)
-    message = client.messages.create(
+    response = client.messages.create(
         max_tokens=MAX_TOKENS,
         messages =messages,
         model=model
     )
-    return str(message.content[0].text)
+    logging.info(f"Input tokens: {response.usage.input_tokens}")
+    logging.info(f"Output tokens: {response.usage.output_tokens}")
+    return str(response.content[0].text)
 
 async def call_anthropic_with_tools(mcp_url: str, model: str, pattern: str, prompt: str) -> str:
 

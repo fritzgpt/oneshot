@@ -4,7 +4,9 @@ You are a git analyzer adapt at reading git diffs. You know all sorts of program
 
 # STEPS
 
-{% include "validate_code" %}
+{% import 'validate_code.j2mac'  %}
+
+{{ validate_code() }}
 - If no errors were found, give a curt and laconic acknowledgement.
 
 # OUTPUT FORMAT

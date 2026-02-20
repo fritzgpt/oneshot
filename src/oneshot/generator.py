@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
 
 
 def write_to_disk(content: str):
@@ -49,3 +50,37 @@ async def generate_patterns(output_path: str, pattern_paths: list[str]):
             stdout, stderr = await res.communicate()
             if res.returncode != 0:
                 logging.error(f'[stderr]\n{stderr.decode()}')
+
+
+def render_templates(output_path: str, pattern_paths: list[str], context: dict) -> None:
+
+    output_path = Path(output_path)
+
+    # Initialize Jinja2 environment with the template root
+    env = Environment(
+        loader=FileSystemLoader([Path(path) for path in pattern_paths]),
+        keep_trailing_newline=True,  # Preserve newlines (important for configs)
+        trim_blocks=True,
+        lstrip_blocks=True
+    )
+
+    # Walk through all files
+    for path in pattern_paths:
+        for root, dirs, files in os.walk(path):
+            for filename in files:
+                if not filename.endswith('.j2'):
+                    continue
+
+                # Calculate relative path from template root
+                full_path = Path(root) / filename
+                rel_path = full_path.relative_to(path)
+
+                # Render template
+                template = env.get_template(str(rel_path))
+                rendered = template.render(**context)
+
+                # Write output (strip .j2 extension)
+                out_file = output_path / str(rel_path).removesuffix('.j2')
+                out_file.parent.mkdir(parents=True, exist_ok=True)
+                out_file.write_text(rendered)
+                print(f"Rendered: {out_file}")
