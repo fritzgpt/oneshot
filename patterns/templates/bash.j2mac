@@ -1,5 +1,5 @@
 {% macro bash() %}
-_ Always add usage function with a couple of run examples which can be called with -h.
+- Always add usage function with a couple of run examples which can be called with -h.
   - Reference function name within usage function with $0.
   - Use echo triple-quote notation to write the usage instructions.
 - Use $variable instead of ${variable} where possible.
