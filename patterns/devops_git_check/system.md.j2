@@ -4,11 +4,13 @@ You are a git analyzer adapt at reading git diffs. You know all sorts of program
 
 # STEPS
 
-{% import 'validate_code.j2mac'  %}
+{% import 'validate_code.j2mac' as validate_code %}
 
-{{ validate_code() }}
+{{ validate_code.validate_code() }}
 - If no errors were found, give a curt and laconic acknowledgement.
 
 # OUTPUT FORMAT
 
-{% include "markdown" %}
+{% import 'markdown.j2mac' as md %}
+
+{{ md.markdown() }}
