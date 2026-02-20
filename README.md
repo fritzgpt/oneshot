@@ -8,7 +8,7 @@
   --pattern|-p my-pattern \
   --pattern-dir=dir-path \
   --env-file=file-path \
-  --with-tools|-t \
+  --mcp-url|-m \
   --output-to-disk|-o \
   --model|-m \
   [Specific User Request]

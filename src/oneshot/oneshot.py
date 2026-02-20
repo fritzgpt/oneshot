@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 import typer
 from typing import List
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -34,7 +33,7 @@ def shoot(
     pattern_name: str = typer.Option("general", "--pattern", "-p", help="Predefined prompt pattern"),
     pattern_dir: str = typer.Option("", "--pattern-dir", help="Directory where prompt patterns are located", envvar="OS_PATTERN_DIR"),
     env_file: str = typer.Option("", "--env-file", help="Path to file with env vars with API credentials in Fabric format", envvar="OS_ENV_FILE"),
-    with_tools: bool = typer.Option(False, "--with-tools", "-t", help="Activate MCP Tool usage"),
+    mcp_url: str = typer.Option("", "--mcp-url", "-u", help="MCP server url", envvar="MCP_URL"),
     output_to_disk: bool = typer.Option(False, "--output-to-disk", "-o", help="Write LLM output back to disk"),
     model: str = typer.Option(..., "--model", "-m", help="LLM model to use", envvar="DEFAULT_MODEL"),
     prompt: List[str] = typer.Argument("", help="User prompt")
@@ -59,9 +58,18 @@ def shoot(
 
     llm_resp: str = ""
     if model.startswith("claude"):
-        llm_resp = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
+        if mcp_url:
+            logging.info(f"Connecting to MCP Server: {mcp_url}")
+            llm_resp = asyncio.run(anthropic.call_anthropic_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin)))
+        else:
+            llm_resp = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
     elif model.startswith("gpt"):
-        llm_resp = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
+        if mcp_url:
+            logging.info(f"Connecting to MCP Server: {mcp_url}")
+            llm_resp = asyncio.run(openai.call_openai_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin)))
+        else:
+            llm_resp = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
+
     elif model.startswith("grok"):
         llm_resp = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(str(prompt), stdin))
 
