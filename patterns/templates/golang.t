@@ -1,3 +1,3 @@
-{{- define "golang" -}}
+{% macro golang() %}
 
-{{- end -}}
+{% endmacro %}

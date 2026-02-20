@@ -1,4 +1,4 @@
-{{- define "bash" -}}
+{% macro bash() %}
 _ Always add usage function with a couple of run examples which can be called with -h.
   - Reference function name within usage function with $0.
   - Use echo triple-quote notation to write the usage instructions.
@@ -36,4 +36,4 @@ _ Always add usage function with a couple of run examples which can be called wi
   SCRIPT_DIR="$(dirname -- "$0")"
   source "$SCRIPT_DIR/<path-to-lib>/log.sh"
   source "$SCRIPT_DIR/<path-to-lib>/utils.sh"
-{{- end -}}
+{% endmacro %}

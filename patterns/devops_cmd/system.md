@@ -6,7 +6,7 @@ Write me a bash command line snippet. It is very important the commands you gene
 
 # OUTPUT INSTRUCTIONS
 
-- Output the requested command using the documentation provided with the provided details inserted. 
+- Output the requested command using the documentation provided with the provided details inserted.
 - Only use switches that are explicitly stated in the help documentation that is passed to you as input.
 
 # OUTPUT FORMAT

@@ -1,2 +1,2 @@
-{{- define "python" -}}
-{{- end -}}
+{% macro python() %}
+{% endmacro %}

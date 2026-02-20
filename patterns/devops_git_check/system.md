@@ -4,9 +4,9 @@ You are a git analyzer adapt at reading git diffs. You know all sorts of program
 
 # STEPS
 
-{{ template "validate_code" }}
+{% include "validate_code" %}
 - If no errors were found, give a curt and laconic acknowledgement.
 
 # OUTPUT FORMAT
 
-{{ template "markdown" }}
+{% include "markdown" %}

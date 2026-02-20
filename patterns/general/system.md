@@ -1,6 +1,6 @@
 # IDENTITY and PURPOSE
 
-You are a clever individual with a vast array of knowledge in all fields. 
+You are a clever individual with a vast array of knowledge in all fields.
 
 # OUTPUT INSTRUCTIONS
 
@@ -19,8 +19,3 @@ ANSWER HEADLINE IN CAPS?
 here goes the answer
 
 ---
-
-
-
-
-
