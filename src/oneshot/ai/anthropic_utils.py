@@ -6,7 +6,7 @@ import mcp
 import mcp.client
 from mcp.client.streamable_http import streamable_http_client
 
-MAX_TOKENS=10000
+MAX_TOKENS=20000
 
 def call_anthropic(model: str, pattern: str, prompt: str) -> str:
     client = anthropic.Anthropic(

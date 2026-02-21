@@ -4,6 +4,7 @@ import os
 import select
 import sys
 import pattern as p
+import collector as c
 import ai.anthropic_utils as anthropic
 import ai.openai_utils as openai
 import ai.xai_utils as xai
@@ -22,9 +23,11 @@ logging.basicConfig(
 oneshot = typer.Typer(help="Oneshot AI CLI")
 shoot = typer.Typer(help="Shoot query against the AI")
 pattern = typer.Typer(help="Manage your Fabric pattern files")
+collect = typer.Typer(help="Collect files to be handed to the AI")
 list_patterns = typer.Typer(help="List Fabric pattern files")
 generate_patterns = typer.Typer(help="Generate Fabric pattern files with gomplate")
 oneshot.add_typer(shoot)
+oneshot.add_typer(collect)
 oneshot.add_typer(pattern, name="pattern")
 pattern.add_typer(list_patterns)
 pattern.add_typer(generate_patterns)
@@ -80,6 +83,14 @@ def shoot(
     else:
         print(llm_resp)
 
+@collect.command()
+def collect(
+        collect_dir: str = typer.Argument(".", help="Collect directory or regex"),
+        include_hidden: bool = typer.Argument(False, help="Include hidden files in collection"),
+        count_tokens: bool = typer.Argument(False, help="Count tokens to estimate costs of AI-call")
+):
+    c.collect_files(collect_dir, include_hidden, count_tokens)
+
 @list_patterns.command(name="list")
 def list_patterns(
         pattern_dir: str = typer.Option("", "--pattern-dir", help="Directory where prompt patterns are located", envvar="OS_PATTERN_DIR"),
@@ -105,9 +116,10 @@ def generate_patterns(
     if not os.path.exists(output_dir):
         logging.error(f"Output dir does not exist: {output_dir}")
         return
-    generator.render_templates(output_dir, pattern_template_dir, {})
 
-def read_stdin_or_continue(timeout=0.0):
+    generator.render_jinja2_templates(output_dir, pattern_template_dir)
+
+def read_stdin_or_continue(timeout=1.0):
     """Read STDIN if available, otherwise return None."""
     if select.select([sys.stdin], [], [], timeout)[0]:
         return sys.stdin.read()

@@ -1,12 +1,10 @@
 import json
-import logging
 import os
-
-from openai import OpenAI
 
 import mcp
 import mcp.client
 from mcp.client.streamable_http import streamable_http_client
+from openai import OpenAI
 
 
 def call_openai(model: str, pattern: str, prompt: str) -> str:
