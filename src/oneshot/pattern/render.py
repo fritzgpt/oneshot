@@ -7,7 +7,6 @@ from jinja2 import Environment, FileSystemLoader
 
 def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
 
-
     output_path = Path(output_path)
 
     # Initialize Jinja2 environment with the template root
@@ -20,13 +19,17 @@ def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
 
     # files
     context: dict = {
-        "recipes": get_files_in_dir(str(Path(os.getenv('OBSIDIAN_BASE_PATH')) / os.getenv('OBSIDIAN_VAULT_PATH_2'))),
-        "workouts": get_files_in_dir(str(Path(os.getenv('OBSIDIAN_BASE_PATH')) / os.getenv('OBSIDIAN_VAULT_PATH_1') / "Workouts")),
+        "recipes": get_files_in_dir(str(Path(os.getenv('MARKDOWN_BASE_PATH')) / os.getenv('MARKDOWN_VAULT_PATH_2'))),
+        "workouts": get_files_in_dir(str(Path(os.getenv('MARKDOWN_BASE_PATH')) / os.getenv('MARKDOWN_VAULT_PATH_1') / "Workouts")),
     }
     # Walk through all files
     for path in pattern_paths:
         logging.info(f"Root path: {path}")
         for root, dirs, files in os.walk(path):
+
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
+            files = [f for f in files if not f.startswith(".")]
+
             for filename in files:
                 if not filename.endswith('.j2'):
                     logging.info(f"Skipping: {filename}")

@@ -1,17 +1,17 @@
-import asyncio
+import json
 import logging
 import os
 import select
 import sys
-import pattern as p
-import collector as c
-import ai.anthropic_utils as anthropic
-import ai.openai_utils as openai
-import ai.xai_utils as xai
-import generator
-from dotenv import load_dotenv
-import typer
 from typing import List
+
+import typer
+
+from collector import collector as c
+from completion import complete
+from generator import generator
+from pattern import pattern as p
+from pattern import render
 
 log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
 logging.basicConfig(
@@ -48,35 +48,9 @@ def shoot(
         pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
 
     stdin = read_stdin_or_continue()
-    pattern_content = p.get_pattern(pattern_dir, pattern_name)
     prompt_str: str = " ".join(prompt)
 
-    if pattern_content is None:
-        return
-
-    if not load_dotenv(env_file):
-        logging.error(f"Failed to read: {env_file}")
-        return
-
-    logging.info(f"Calling model: {model}")
-    logging.info(f"Using pattern: {pattern_name}")
-
-    llm_resp: str = ""
-    if model.startswith("claude"):
-        if mcp_url:
-            logging.info(f"Connecting to MCP Server: {mcp_url}")
-            llm_resp = asyncio.run(anthropic.call_anthropic_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin)))
-        else:
-            llm_resp = anthropic.call_anthropic(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin))
-    elif model.startswith("gpt"):
-        if mcp_url:
-            logging.info(f"Connecting to MCP Server: {mcp_url}")
-            llm_resp = asyncio.run(openai.call_openai_with_tools(mcp_url, model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin)))
-        else:
-            llm_resp = openai.call_openai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin))
-
-    elif model.startswith("grok"):
-        llm_resp = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt_str, stdin))
+    llm_resp = complete(env_file, pattern_dir, pattern_name, stdin, prompt_str, model, mcp_url)
 
     if output_to_disk:
         generator.write_to_disk(llm_resp)
@@ -95,10 +69,11 @@ def collect(
 def list_patterns(
         pattern_dir: str = typer.Option("", "--pattern-dir", help="Directory where prompt patterns are located", envvar="OS_PATTERN_DIR"),
 ):
-    if pattern_dir == "":
-        pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
+    pattern_dir = p.get_pattern_dir(pattern_dir)
     logging.info(f"Listing patterns in: {pattern_dir}")
-    p.list_patterns(pattern_dir)
+    patterns = p.list_patterns(pattern_dir)
+    print(json.dumps(patterns))
+
 
 @generate_patterns.command(name="generate")
 def generate_patterns(
@@ -117,7 +92,7 @@ def generate_patterns(
         logging.error(f"Output dir does not exist: {output_dir}")
         return
 
-    generator.render_jinja2_templates(output_dir, pattern_template_dir)
+    render.render_jinja2_templates(output_dir, pattern_template_dir)
 
 def read_stdin_or_continue(timeout=1.0):
     """Read STDIN if available, otherwise return None."""
