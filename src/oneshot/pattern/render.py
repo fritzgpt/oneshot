@@ -1,9 +1,10 @@
-import asyncio
+import logging
 import logging
 import os
-import re
 from pathlib import Path
+
 from jinja2 import Environment, FileSystemLoader
+
 
 def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
 
