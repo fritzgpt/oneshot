@@ -4,7 +4,7 @@
 
 ```bash
 # basic
-./oneshot.py shoot \
+./src/oneshot/cli.py shoot \
   --pattern|-p my-pattern \
   --pattern-dir=dir-path \
   --env-file=file-path \
@@ -14,11 +14,11 @@
   [Specific User Request]
 
 # generate patterns
-./oneshot.py pattern generate \
+./src/oneshot/cli.py pattern generate \
   --output-dir|-o=dir-path
   --template-dir|-t=dir-path
   --template-dir|-t=dir-path-2
 
 # list patterns
-./oneshot.py pattern list
+./src/oneshot/cli.py pattern list
 ```
