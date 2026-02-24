@@ -1,3 +1,4 @@
+#! python3
 import json
 import logging
 import os
@@ -55,6 +56,7 @@ def shoot(
     if output_to_disk:
         generator.write_to_disk(llm_resp)
     else:
+        sys.stdout.reconfigure(encoding="utf-8")
         print(llm_resp)
 
 @collect.command()

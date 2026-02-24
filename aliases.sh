@@ -1,7 +1,5 @@
-#!/usr/bin/env bash
-
 # AI interaction commands
-alias aigp=ai_general_prompt
+alias aig=ai_general_prompt
 alias aiq=ai_devops_question
 alias aicmd=ai_cmd
 alias aic=ai_code

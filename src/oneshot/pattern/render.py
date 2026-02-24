@@ -41,7 +41,7 @@ def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
                 rel_path = full_path.relative_to(path)
 
                 # Render template
-                template = env.get_template(str(rel_path))
+                template = env.get_template(rel_path.as_posix())
                 logging.info(f"Rendering: {template.name}")
                 rendered = template.render(**context)
 

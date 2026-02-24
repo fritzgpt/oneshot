@@ -1,4 +1,3 @@
-import json
 import os
 
 import mcp
@@ -10,12 +9,11 @@ from openai import OpenAI
 def call_openai(model: str, pattern: str, prompt: str) -> str:
     client = create_client()
     messages = create_messages(pattern, prompt)
-    response = client.responses.create(
-        instructions=pattern,
-        input=messages,
+    response = client.chat.completions.create(
+        messages=messages,
         model=model,
     )
-    return response.output_text
+    return response.choices[0].message.content
 
 async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt: str) -> str:
     async with streamable_http_client(f"{mcp_url}/mcp") as (
@@ -32,39 +30,12 @@ async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt:
 
             input_list = create_messages(pattern, prompt)
             available_tools = await mcp_to_openai_tools(session)
-            response = client.responses.create(
-                tools=available_tools,
+            response = client.completions.create(
                 model=model,
-                input=input_list
+                prompt=prompt
             )
 
-            # make sure tool blocks are part of message
-            input_list += response.output
-
-            # Call Tools as indicated by LLM
-            final_text: list[str] = []
-            for item in response.output:
-                if item.type == 'function_call':
-                    tool_name = item.name
-                    tool_args = json.loads(item.arguments)
-                    result = await session.call_tool(tool_name, tool_args)
-                    final_text.append(f"Calling tool: {tool_name} with args: {tool_args}")
-                    input_list.append({
-                        "type": "function_call_output",
-                        "call_id": item.call_id,
-                        "output": result.content[0].text
-                    })
-
-            # Second call to LLM with tool results
-            response = client.responses.create(
-                input=input_list,
-                model=model,
-                tools=available_tools
-            )
-
-            final_text.append(response.output[0].content[0].text)
-
-            return "\n".join(final_text)
+            return "\n".join(response)
 
 
 def create_client() -> OpenAI:

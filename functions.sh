@@ -1,5 +1,3 @@
-#!/bin/bash
-
 SCRIPT_DIR="$(dirname -- "${BASH_SOURCE[0]:-${0}}")"
 
 activate_env() {
@@ -8,72 +6,72 @@ activate_env() {
 
 ai() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot "$@"
 }
 
 ai_general_prompt() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p general "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p general "$@"
 }
 
 ai_devops_question() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_quick_question "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_quick_question "$@"
 }
 
 # generate code single file
 ai_code_bash() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash "$@"
 }
 
 ai_code() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code "$@"
 }
 
 # act on multiple files
 ai_multi() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p general -o "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p general -o "$@"
 }
 
 # generate code multiple files
 ai_code_multi() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code -o "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code -o "$@"
 }
 
 ai_code_multi_bash() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash -o "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash -o "$@"
 }
 
 ai_code_multi_go() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_go -o "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_go -o "$@"
 }
 
 ai_code_multi_python() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_python -o "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_python -o "$@"
 }
 
 # git
 ai_git() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_gitcommit "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_gitcommit "$@"
 }
 
 collect() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py collect "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py collect "$@"
 }
 
 # pattern generator
-ai_generate_patterns() {
+generate() {
   activate_env
-  python3 "$SCRIPT_DIR"/src/oneshot/cli.py pattern generate \
+  "$SCRIPT_DIR"/src/oneshot/cli.py pattern generate \
       -o $HOME/.config/fabric/patterns \
       -t $HOME/projects/github/fritzgpt/oneshot/patterns \
       -t $HOME/projects/github/fritzgpt/oneshot/patterns/templates \

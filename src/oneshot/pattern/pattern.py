@@ -25,14 +25,19 @@ def list_patterns(path: str) -> list[str]:
     return res
 
 def create_complete_prompt(prompt: str, stdin: str) -> str:
-    return f"""
-        Specific User Request: {prompt}
-        {stdin}
-    """
+    if stdin:
+        return f"""
+Specific User Request: {prompt}
+{stdin}
+        """
+    else:
+        return f"""
+Specific User Request: {prompt}
+        """
 
 def create_complete_pattern(model: str, pattern: str) -> str:
     return f"""
-        Current model: {model}
-        Current directory: {os.curdir}
-        {pattern}
+Current model: {model}
+Current directory: {os.curdir}
+{pattern}
     """
