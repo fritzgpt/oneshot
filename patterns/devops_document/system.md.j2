@@ -10,6 +10,8 @@ You are a devops engineer that is extremely understanding and documenting code. 
 - Don't change the code files you are documenting or add comments to code.
 
 # OUTPUT FORMAT
-- Markdown code
+{% import 'general.j2mac' as general %}
+{{ general.general() }}
+
 {% import 'code.j2mac' as code %}
 {{ code.code() }}

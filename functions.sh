@@ -22,45 +22,18 @@ ai_devops_question() {
 # generate code single file
 ai_code_bash() {
   activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash -o -s "$@"
 }
 
 ai_code() {
   activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code "$@"
-}
-
-# act on multiple files
-ai_multi() {
-  activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p general -o "$@"
-}
-
-# generate code multiple files
-ai_code_multi() {
-  activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code -o "$@"
-}
-
-ai_code_multi_bash() {
-  activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash -o "$@"
-}
-
-ai_code_multi_go() {
-  activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_go -o "$@"
-}
-
-ai_code_multi_python() {
-  activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_python -o "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code -o -s "$@"
 }
 
 # git
 ai_git() {
   activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_gitcommit "$@"
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_gitcommit -s "$@"
 }
 
 collect() {

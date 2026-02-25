@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-import select
 import sys
 from typing import List
 
@@ -41,15 +40,22 @@ def shoot(
     mcp_url: str = typer.Option("", "--mcp-url", "-u", help="MCP server url", envvar="MCP_URL"),
     output_to_disk: bool = typer.Option(False, "--output-to-disk", "-o", help="Write LLM output back to disk"),
     model: str = typer.Option(..., "--model", "-m", help="LLM model to use", envvar="DEFAULT_MODEL"),
-    prompt: List[str] = typer.Argument("", help="User prompt")
+    read_stdin: bool = typer.Option(False, "--stdin", "-s", help="Read input from stdin"),
+    prompt: List[str] = typer.Argument([], help="User prompt")
 ):
     if env_file == "":
         env_file = os.getenv("HOME") + "/.config/fabric/.env"
     if pattern_dir == "":
         pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
 
-    stdin = read_stdin_or_continue()
-    prompt_str: str = " ".join(prompt)
+    stdin = ""
+    if read_stdin:
+        data = sys.stdin.buffer.read()
+        stdin = data.decode("utf-8", errors="replace")
+
+    prompt_str = ""
+    if prompt:
+        prompt_str = " ".join(prompt)
 
     llm_resp = complete(env_file, pattern_dir, pattern_name, stdin, prompt_str, model, mcp_url)
 
@@ -96,11 +102,6 @@ def generate_patterns(
 
     render.render_jinja2_templates(output_dir, pattern_template_dir)
 
-def read_stdin_or_continue(timeout=1.0):
-    """Read STDIN if available, otherwise return None."""
-    if select.select([sys.stdin], [], [], timeout)[0]:
-        return sys.stdin.read()
-    return None
 
 if __name__ == "__main__":
     oneshot()
