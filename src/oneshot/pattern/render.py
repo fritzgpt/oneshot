@@ -20,8 +20,8 @@ def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
 
     # files
     context: dict = {
-        "recipes": get_files_in_dir(str(Path(os.getenv('MARKDOWN_BASE_PATH')) / os.getenv('MARKDOWN_VAULT_PATH_2'))),
-        "workouts": get_files_in_dir(str(Path(os.getenv('MARKDOWN_BASE_PATH')) / os.getenv('MARKDOWN_VAULT_PATH_1') / "Workouts")),
+        "recipes": get_files_in_dir(f"{os.getenv('OS_MARKDOWN_BASE_DIR')}/{os.getenv('OS_MARKDOWN_VAULT_DIR_2')}"),
+        "workouts": get_files_in_dir(f"{os.getenv('OS_MARKDOWN_BASE_DIR')}/{os.getenv('OS_MARKDOWN_VAULT_DIR_1')}/Workouts"),
     }
     # Walk through all files
     for path in pattern_paths:

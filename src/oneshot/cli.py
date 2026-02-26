@@ -7,8 +7,8 @@ from typing import List
 
 import typer
 
+import ai_utils
 from collector import collector as c
-from completion import complete
 from generator import generator
 from pattern import pattern as p
 from pattern import render
@@ -22,15 +22,19 @@ logging.basicConfig(
 
 oneshot = typer.Typer(help="Oneshot AI CLI")
 shoot = typer.Typer(help="Shoot query against the AI")
-pattern = typer.Typer(help="Manage your Fabric pattern files")
+pattern = typer.Typer(help="Manage your pattern files")
+models = typer.Typer(help="Manage API Models")
 collect = typer.Typer(help="Collect files to be handed to the AI")
-list_patterns = typer.Typer(help="List Fabric pattern files")
+list_patterns = typer.Typer(help="List pattern files")
+list_models = typer.Typer(help="List Model names")
 generate_patterns = typer.Typer(help="Generate Fabric pattern files with gomplate")
 oneshot.add_typer(shoot)
 oneshot.add_typer(collect)
-oneshot.add_typer(pattern, name="pattern")
+oneshot.add_typer(pattern, name="patterns")
+oneshot.add_typer(models, name="models")
 pattern.add_typer(list_patterns)
 pattern.add_typer(generate_patterns)
+models.add_typer(list_models)
 
 @shoot.command()
 def shoot(
@@ -44,9 +48,9 @@ def shoot(
     prompt: List[str] = typer.Argument([], help="User prompt")
 ):
     if env_file == "":
-        env_file = os.getenv("HOME") + "/.config/fabric/.env"
+        env_file = os.getenv("OS_CONFIG_ENV_FILE")
     if pattern_dir == "":
-        pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
+        pattern_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
 
     stdin = ""
     if read_stdin:
@@ -57,7 +61,7 @@ def shoot(
     if prompt:
         prompt_str = " ".join(prompt)
 
-    llm_resp = complete(env_file, pattern_dir, pattern_name, stdin, prompt_str, model, mcp_url)
+    llm_resp = ai_utils.complete(env_file, pattern_dir, pattern_name, stdin, prompt_str, model, mcp_url)
 
     if output_to_disk:
         generator.write_to_disk(llm_resp)
@@ -68,20 +72,24 @@ def shoot(
 @collect.command()
 def collect(
         collect_dir: str = typer.Argument(".", help="Collect directory or regex"),
-        include_hidden: bool = typer.Argument(False, help="Include hidden files in collection"),
-        count_tokens: bool = typer.Argument(False, help="Count tokens to estimate costs of AI-call")
+        include_hidden: bool = typer.Option(False, "--hidden", "-H", help="Include hidden files in collection"),
+        num_threads: int = typer.Option(1, "--threads", "-t", help="Number of concurrent threads for operation")
 ):
-    c.collect_files(collect_dir, include_hidden, count_tokens)
+    if num_threads > 1:
+        logging.debug(f"Running with {num_threads} threads")
+        c.collect_files_async(collect_dir, include_hidden, num_threads)
+    else:
+        logging.debug("Running single threaded")
+        c.collect_files(collect_dir, include_hidden)
 
 @list_patterns.command(name="list")
 def list_patterns(
         pattern_dir: str = typer.Option("", "--pattern-dir", help="Directory where prompt patterns are located", envvar="OS_PATTERN_DIR"),
 ):
-    pattern_dir = p.get_pattern_dir(pattern_dir)
+    pattern_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
     logging.info(f"Listing patterns in: {pattern_dir}")
     patterns = p.list_patterns(pattern_dir)
     print(json.dumps(patterns))
-
 
 @generate_patterns.command(name="generate")
 def generate_patterns(
@@ -102,6 +110,15 @@ def generate_patterns(
 
     render.render_jinja2_templates(output_dir, pattern_template_dir)
 
+
+@list_models.command(name="list")
+def list_models(
+        env_file: str = typer.Option("", "--env-file", help="Path to file with env vars with API credentials in Fabric format", envvar="OS_ENV_FILE"),
+):
+    if not env_file:
+        env_file = os.getenv("OS_CONFIG_ENV_FILE")
+
+    print(json.dumps(ai_utils.list_models(env_file)))
 
 if __name__ == "__main__":
     oneshot()

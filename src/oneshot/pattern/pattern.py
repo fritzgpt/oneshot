@@ -2,11 +2,6 @@ import logging
 import os
 from pathlib import Path
 
-def get_pattern_dir(pattern_dir: str) -> str:
-    if pattern_dir == "":
-        pattern_dir = os.getenv("HOME") + "/.config/fabric/patterns"
-    return pattern_dir
-
 def get_pattern(path: str, pattern: str) -> str | None:
     pattern_path = f"{path}/{pattern}/system.md"
     try:

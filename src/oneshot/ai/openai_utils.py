@@ -5,6 +5,10 @@ import mcp.client
 from mcp.client.streamable_http import streamable_http_client
 from openai import OpenAI
 
+def list_models() -> list[str]:
+    client = create_client()
+    models = [ model.id for model in client.models.list()]
+    return models
 
 def call_openai(model: str, pattern: str, prompt: str) -> str:
     client = create_client()

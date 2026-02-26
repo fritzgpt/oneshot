@@ -4,6 +4,7 @@ alias aiq=ai_devops_question
 alias aic=ai_code
 alias aicb=ai_code_bash
 alias aicg=ai_code_go
+alias aicj=ai_code_js
 alias aid=ai_doc
 
 # AI directory and git commands

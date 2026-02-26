@@ -8,10 +8,13 @@ from mcp.client.streamable_http import streamable_http_client
 
 MAX_TOKENS=20000
 
+def list_models() -> list[str]:
+    client = create_client()
+    models = [ model.id for model in client.models.list()]
+    return models
+
 def call_anthropic(model: str, pattern: str, prompt: str) -> str:
-    client = anthropic.Anthropic(
-        api_key=os.environ.get("ANTHROPIC_API_KEY"),  # This is the default and can be omitted
-    )
+    client = create_client()
     messages = create_messages(pattern, prompt)
     response = client.messages.create(
         max_tokens=MAX_TOKENS,
@@ -21,6 +24,14 @@ def call_anthropic(model: str, pattern: str, prompt: str) -> str:
     logging.info(f"Input tokens: {response.usage.input_tokens}")
     logging.info(f"Output tokens: {response.usage.output_tokens}")
     return str(response.content[0].text)
+
+
+def create_client() -> Anthropic:
+    client = anthropic.Anthropic(
+        api_key=os.environ.get("ANTHROPIC_API_KEY"),  # This is the default and can be omitted
+    )
+    return client
+
 
 async def call_anthropic_with_tools(mcp_url: str, model: str, pattern: str, prompt: str) -> str:
 

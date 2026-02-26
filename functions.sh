@@ -4,6 +4,11 @@ activate_env() {
   source "$SCRIPT_DIR"/.venv/bin/activate
 }
 
+os() {
+  activate_env
+  "$SCRIPT_DIR"/src/oneshot/cli.py "$@"
+}
+
 ai() {
   activate_env
   "$SCRIPT_DIR"/src/oneshot/cli.py shoot "$@"
@@ -19,10 +24,14 @@ ai_devops_question() {
   "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_quick_question "$@"
 }
 
-# generate code single file
 ai_code_bash() {
   activate_env
   "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_bash -o -s "$@"
+}
+
+ai_code_js() {
+  activate_env
+  "$SCRIPT_DIR"/src/oneshot/cli.py shoot -p devops_code_js -o -s "$@"
 }
 
 ai_code() {
@@ -44,7 +53,7 @@ collect() {
 # pattern generator
 generate() {
   activate_env
-  "$SCRIPT_DIR"/src/oneshot/cli.py pattern generate \
+  "$SCRIPT_DIR"/src/oneshot/cli.py patterns generate \
       -o $HOME/.config/fabric/patterns \
       -t $HOME/projects/github/fritzgpt/oneshot/patterns \
       -t $HOME/projects/github/fritzgpt/oneshot/patterns/templates \
@@ -55,11 +64,11 @@ generate() {
 
 # configuration
 model_claude() {
-  export DEFAULT_MODEL=claude-sonnet-4-5
+  export DEFAULT_MODEL=claude-sonnet-4-6
 }
 
 model_claude_opus() {
-  export DEFAULT_MODEL=claude-opus-4-5
+  export DEFAULT_MODEL=claude-opus-4-6
 }
 
 model_claude_haiku() {

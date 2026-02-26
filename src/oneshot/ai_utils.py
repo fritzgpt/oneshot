@@ -40,3 +40,18 @@ def complete(env_file: str, pattern_dir: str, pattern_name: str, stdin: str, pro
         llm_resp = xai.call_xai(model, p.create_complete_pattern(model, pattern_content), p.create_complete_prompt(prompt, stdin))
 
     return llm_resp
+
+
+def list_models(env_file: str) -> list[str]:
+
+    if not load_dotenv(env_file):
+        logging.error(f"Failed to read: {env_file}")
+        return ""
+    models = []
+    models.extend(openai.list_models())
+    models.extend(anthropic.list_models())
+    models.extend(xai.list_models())
+
+    filter_prefixes = ["gpt-5.", "claude-", "grok-4"]
+
+    return [m for m in models if m.startswith(tuple(filter_prefixes))]

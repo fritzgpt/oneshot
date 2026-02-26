@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from completion import complete
+import ai_utils
 
 from flask import Flask, request
 
@@ -36,36 +36,43 @@ app = Flask(__name__)
 @app.route("/completion", methods=["POST"])
 def completion():
     data = request.get_json()
-    env_file = f"{os.getenv("HOME")}/{os.getenv("FABRIC_CONFIG_HOME")}/.env"
-    pattern_dir = f"{os.getenv("HOME")}/{os.getenv("FABRIC_CONFIG_HOME")}/patterns"
-    base_path = os.getenv("MARKDOWN_BASE_PATH")
+    env_file = os.getenv("OS_CONFIG_ENV_FILE")
+    pattern_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
+    base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
     markdown_file = ""
-    with os.read(f"{base_path}/{data.markdownFile}") as f:
-        markdown_file = f
-    return complete(env_file, pattern_dir, data.patternName, markdown_file, data.userInput, data.model, os.getenv("MCP_URL"))
+    markdown_path = data["markdown"]
+    if markdown_path:
+        markdown_file = Path(f"{base_path}/{markdown_path}").read_text()
+    return ai_utils.complete(env_file, pattern_dir, data["pattern"], markdown_file, data["message"], data["model"], os.getenv("MCP_URL"))
 
 @app.route("/patterns/names")
 def pattern_names():
-    pattern_dir = pattern.get_pattern_dir("")
+    pattern_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
     logging.info(f"Listing patterns in: {pattern_dir}")
     patterns = pattern.list_patterns(pattern_dir)
     return patterns
 
+@app.route("/models/names")
+def model_names(
+):
+    env_file = os.getenv("OS_CONFIG_ENV_FILE")
+    return ai_utils.list_models(env_file)
+
 @app.route("/patterns/generate", methods=["POST"])
 def generate_patterns():
-    output_dir = Path(os.getenv("FABRIC_CONFIG_HOME")) / "patterns"
-    pattern_dir = os.getenv("FABRIC_PATTERN_PATH")
-    pattern_template_dir = Path(os.getenv("FABRIC_PATTERN_PATH")) / "templates"
-    render.render_jinja2_templates(str(output_dir), [pattern_dir, str(pattern_template_dir)])
+    output_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
+    pattern_dir = os.getenv("OS_PATTERN_TEMPLATE_DIR")
+    pattern_template_dir = Path(os.getenv("OS_PATTERN_TEMPLATE_DIR")) / "templates"
+    render.render_jinja2_templates(output_dir, [pattern_dir, str(pattern_template_dir)])
     return "OK"
 
 @app.route("/markdown/paths")
 def markdown_paths():
     paths: list[str] = []
     count: int = 1
-    base_path = os.getenv("MARKDOWN_BASE_PATH")
-    while os.getenv(f"MARKDOWN_VAULT_PATH_{count}"):
-        path = os.getenv(f"MARKDOWN_VAULT_PATH_{count}")
+    base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
+    while os.getenv(f"OS_MARKDOWN_VAULT_DIR_{count}"):
+        path = os.getenv(f"OS_MARKDOWN_VAULT_DIR_{count}")
         paths.extend(markdown.list_files(f"{base_path}/{path}"))
         count = count + 1
     # trim base_path
@@ -74,16 +81,25 @@ def markdown_paths():
 
 @app.route("/markdown/store", methods=["POST"])
 def markdown_store():
-    path = request.args.get("path")
-    data = request.get_data()
-    base_path = os.getenv("MARKDOWN_BASE_PATH")
+    data = request.get_json()
+    path = data["path"]
+    md = data["markdown"]
+    base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
     with open(f"{base_path}/{path}") as f:
-        f.write(data)
+        f.write(md)
 
 @app.route("/telegram/send", methods=["POST"])
-def markdown_store():
-    data = request.get_data()
-    telegram.send(data, os.getenv("TELEGRAM_BOT_TOKEN"))
+def telegram_send():
+    data = request.get_json()
+    telegram.send(data["message"], os.getenv("TELEGRAM_BOT_TOKEN"))
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    return response
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8082, debug=True)

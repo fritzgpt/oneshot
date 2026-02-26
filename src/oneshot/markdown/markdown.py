@@ -11,6 +11,7 @@ def list_files(path: str) -> list[str]:
     files = list(Path(path).glob("**/*.md"))
     res: list[str] = []
     for f in files:
-        res.append(str(f))
+        if not ".trash" in str(f):
+            res.append(str(f))
     res.sort()
     return res
