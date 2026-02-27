@@ -14,9 +14,7 @@ def collect_files(collect_expr: str, include_hidden: bool) -> None:
         for filename in files:
             full_path = Path(root) / filename
             if pattern.search(str(full_path)):
-                print(f"FILENAME: {full_path}")
-                print("\n")
-                print(Path(full_path).read_text())
+                cat_file(full_path)
 
 def collect_files_async(collect_expr: str, include_token: bool, num_threads: int):
     pattern = re.compile(rf"{collect_expr}")
@@ -43,6 +41,11 @@ def collect_files_async(collect_expr: str, include_token: bool, num_threads: int
 def filter_files(files: list[str]) -> list[str]:
     return [f for f in files if not f.startswith(".") \
             and not f.endswith("lock.json") \
+            and not f.endswith(".ico") \
+            and not f.endswith(".png") \
+            and not f.endswith(".jpg") \
+            and not f.endswith(".jpeg") \
+            and not f.endswith(".gif") \
         ]
 
 def filter_dirs(dirs: list[str]) -> list[str]:
@@ -60,4 +63,4 @@ def search_file(path: str, pattern) -> str:
 def cat_file(path: str):
     print(f"FILENAME: {path}")
     print("\n")
-    print(Path(path).read_text())
+    print(Path(path).read_text(encoding="utf-8"))
