@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from pathlib import Path
 import ai_utils
 
@@ -57,12 +58,14 @@ def pattern_names():
 @app.route("/patterns/<name>")
 def get_pattern(name: str):
     pattern_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
-    pattern_content = pattern.get_pattern(pattern_dir, name)
-    return f"""---
-pattern: {name}
----
-{pattern_content}
-"""
+    return pattern.get_pattern(pattern_dir, name)
+
+@app.route("/patterns/<name>", methods=["DELETE"])
+def delete_pattern(name: str):
+    pattern_dir = os.getenv("OS_PATTERN_TEMPLATE_DIR")
+    if pattern.delete_pattern(pattern_dir, name):
+        return "OK"
+    return "Failure"
 
 @app.route("/models/names")
 def model_names(
@@ -75,6 +78,7 @@ def generate_patterns():
     output_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
     pattern_dir = os.getenv("OS_PATTERN_TEMPLATE_DIR")
     pattern_template_dir = Path(pattern_dir) / "templates"
+    shutil.rmtree(output_dir)
     render.render_jinja2_templates(output_dir, [pattern_dir, str(pattern_template_dir)])
     return "OK"
 
@@ -95,14 +99,15 @@ def markdown_paths():
 def get_markdown():
     base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
     path = request.args.get("path")
-    md_content = ""
-    with open(f"{base_path}/{path}") as f:
-        md_content = f.read()
-    return f"""---
-markdown: {path}
----
-{md_content}
-"""
+    return markdown.get_md(f"{base_path}/{path}")
+
+@app.route("/markdown/file", methods=["DELETE"])
+def delete_markdown():
+    base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
+    path = request.args.get("path")
+    if markdown.delete_md(f"{base_path}/{path}"):
+        return "OK"
+    return "Failure"
 
 @app.route("/markdown/store", methods=["POST"])
 def markdown_store():

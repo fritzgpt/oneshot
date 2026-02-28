@@ -15,3 +15,19 @@ def list_files(path: str) -> list[str]:
             res.append(str(f))
     res.sort()
     return res
+
+def get_md(path: str) -> str | None:
+    try:
+        with open(path) as f:
+            return f.read()
+    except FileNotFoundError:
+        logging.error(f"Error: File '{path}' not found")
+        return None
+
+def delete_md(path: str) -> bool:
+    try:
+        os.remove(path)
+        return True
+    except FileNotFoundError:
+        logging.error(f"Error: File '{path}' not found")
+        return False

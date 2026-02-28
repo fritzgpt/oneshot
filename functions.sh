@@ -80,7 +80,7 @@ model_chatgpt5() {
 }
 
 model_chatgpt5_codex() {
-  export DEFAULT_MODEL=gpt-5.1-codex
+  export DEFAULT_MODEL=gpt-5.2-codex
 }
 
 model_grok_code() {

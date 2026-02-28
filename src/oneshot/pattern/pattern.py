@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from pathlib import Path
 
 def get_pattern(path: str, pattern: str) -> str | None:
@@ -10,6 +11,16 @@ def get_pattern(path: str, pattern: str) -> str | None:
     except FileNotFoundError:
         logging.error(f"Error: File '{pattern_path}' not found")
         return None
+
+def delete_pattern(path: str, pattern: str) -> bool:
+    pattern_path = f"{path}/{pattern}"
+    try:
+        shutil.rmtree(pattern_path)
+        logging.info(f"Deleted: '{pattern_path}'")
+        return True
+    except FileNotFoundError:
+        logging.error(f"Error: File '{pattern_path}' not found")
+        return False
 
 def list_patterns(path: str) -> list[str]:
     files = list(Path(path).glob("**/system.md"))

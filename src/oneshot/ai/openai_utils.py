@@ -14,18 +14,29 @@ def list_models() -> list[str]:
 def call_openai(model: str, pattern: str, prompt: str) -> str:
     client = create_client()
     messages = create_messages(pattern, prompt)
-    response = client.chat.completions.create(
-        messages=messages,
-        model=model,
-    )
-    return response.choices[0].message.content
+    if model.endswith("-codex"):
+        response = client.responses.create(
+            model=model,
+            input=messages
+        )
+        return response.output_text
+    else:
+        response = client.chat.completions.create(
+            messages=messages,
+            model=model,
+        )
+        if response.choices:
+            return response.choices[0].message.content
+
+    return "The LLMs has not answers for you"
+
 
 async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt: str) -> str:
-    async with streamable_http_client(f"{mcp_url}/mcp") as (
+    async with (streamable_http_client(f"{mcp_url}/mcp") as (
             read_stream,
             write_stream,
             _,
-    ):
+    )):
         client = create_client()
 
         # Create a session using the client streams
@@ -64,7 +75,7 @@ async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt:
                 tools=available_tools
             )
 
-            try:
+            if response.output and response.output[0].content:
                 final_text.append(response.output[0].content[0].text)
 
             return "\n".join(final_text)

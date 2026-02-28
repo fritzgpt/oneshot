@@ -4,6 +4,7 @@
 - Write code of the program straight without adding quotes or further comments.
 - Never start output with ``` name of programming language
 - Add all comments you have straight into the code
-- Follow the most common code style conventions
+- Follow clean code conventions, e.g. introduce methods with speaking names
+- With method sort order, put utility methods under main methods and private methods under public ones
 - Don't remove comments unless you edit exactly that part of the code
 {% endmacro %}
