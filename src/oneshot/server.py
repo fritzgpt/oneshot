@@ -41,9 +41,11 @@ def completion():
     base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
     markdown_file = ""
     markdown_path = data["markdown"]
+    with_mcp = data["with_mcp"]
+
     if markdown_path:
         markdown_file = Path(f"{base_path}/{markdown_path}").read_text()
-    return ai_utils.complete(env_file, pattern_dir, data["pattern"], markdown_file, data["message"], data["model"], os.getenv("MCP_URL"))
+    return ai_utils.complete(env_file, pattern_dir, data["pattern"], markdown_file, data["message"], data["model"], os.getenv("MCP_SERVER") if with_mcp else "")
 
 @app.route("/patterns/names")
 def pattern_names():
@@ -51,6 +53,16 @@ def pattern_names():
     logging.info(f"Listing patterns in: {pattern_dir}")
     patterns = pattern.list_patterns(pattern_dir)
     return patterns
+
+@app.route("/patterns/<name>")
+def get_pattern(name: str):
+    pattern_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
+    pattern_content = pattern.get_pattern(pattern_dir, name)
+    return f"""---
+pattern: {name}
+---
+{pattern_content}
+"""
 
 @app.route("/models/names")
 def model_names(
@@ -62,7 +74,7 @@ def model_names(
 def generate_patterns():
     output_dir = os.getenv("OS_CONFIG_PATTERN_DIR")
     pattern_dir = os.getenv("OS_PATTERN_TEMPLATE_DIR")
-    pattern_template_dir = Path(os.getenv("OS_PATTERN_TEMPLATE_DIR")) / "templates"
+    pattern_template_dir = Path(pattern_dir) / "templates"
     render.render_jinja2_templates(output_dir, [pattern_dir, str(pattern_template_dir)])
     return "OK"
 
@@ -79,14 +91,28 @@ def markdown_paths():
     paths = [ path.replace(f"{base_path}/", "") for path in paths]
     return paths
 
+@app.route("/markdown/file")
+def get_markdown():
+    base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
+    path = request.args.get("path")
+    md_content = ""
+    with open(f"{base_path}/{path}") as f:
+        md_content = f.read()
+    return f"""---
+markdown: {path}
+---
+{md_content}
+"""
+
 @app.route("/markdown/store", methods=["POST"])
 def markdown_store():
     data = request.get_json()
     path = data["path"]
     md = data["markdown"]
     base_path = os.getenv("OS_MARKDOWN_BASE_DIR")
-    with open(f"{base_path}/{path}") as f:
+    with open(f"{base_path}/{path}", "w") as f:
         f.write(md)
+    return "OK"
 
 @app.route("/telegram/send", methods=["POST"])
 def telegram_send():

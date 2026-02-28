@@ -30,9 +30,10 @@ Specific User Request: {prompt}
 Specific User Request: {prompt}
         """
 
-def create_complete_pattern(model: str, pattern: str) -> str:
+def create_complete_pattern(model: str, pattern_name: str, pattern: str) -> str:
     return f"""
 Current model: {model}
+Current pattern: {pattern_name}
 Current directory: {os.curdir}
 {pattern}
     """

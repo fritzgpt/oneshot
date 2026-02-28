@@ -26,7 +26,7 @@ def call_anthropic(model: str, pattern: str, prompt: str) -> str:
     return str(response.content[0].text)
 
 
-def create_client() -> Anthropic:
+def create_client() -> anthropic.Anthropic:
     client = anthropic.Anthropic(
         api_key=os.environ.get("ANTHROPIC_API_KEY"),  # This is the default and can be omitted
     )
@@ -80,7 +80,6 @@ async def call_anthropic_with_tools(mcp_url: str, model: str, pattern: str, prom
 
                     # Execute tool call
                     result = await session.call_tool(tool_name, tool_args)
-                    final_text.append(f"Calling tool: {tool_name} with args: {tool_args}")
                     content = {
                         "type": "tool_result",
                         "tool_use_id": content.id,

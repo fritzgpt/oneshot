@@ -1,3 +1,4 @@
+import json
 import os
 
 import mcp
@@ -34,12 +35,39 @@ async def call_openai_with_tools(mcp_url: str, model: str, pattern: str, prompt:
 
             input_list = create_messages(pattern, prompt)
             available_tools = await mcp_to_openai_tools(session)
-            response = client.completions.create(
+            response = client.responses.create(
+                tools=available_tools,
                 model=model,
-                prompt=prompt
+                input=input_list
             )
 
-            return "\n".join(response)
+            # make sure tool blocks are part of message
+            input_list += response.output
+
+            # Call Tools as indicated by LLM
+            final_text: list[str] = []
+            for item in response.output:
+                if item.type == 'function_call':
+                    tool_name = item.name
+                    tool_args = json.loads(item.arguments)
+                    result = await session.call_tool(tool_name, tool_args)
+                    input_list.append({
+                        "type": "function_call_output",
+                        "call_id": item.call_id,
+                        "output": result.content[0].text
+                    })
+
+            # Second call to LLM with tool results
+            response = client.responses.create(
+                input=input_list,
+                model=model,
+                tools=available_tools
+            )
+
+            try:
+                final_text.append(response.output[0].content[0].text)
+
+            return "\n".join(final_text)
 
 
 def create_client() -> OpenAI:

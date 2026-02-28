@@ -20,8 +20,7 @@ def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
 
     # files
     context: dict = {
-        "recipes": get_files_in_dir(f"{os.getenv('OS_MARKDOWN_BASE_DIR')}/{os.getenv('OS_MARKDOWN_VAULT_DIR_2')}"),
-        "workouts": get_files_in_dir(f"{os.getenv('OS_MARKDOWN_BASE_DIR')}/{os.getenv('OS_MARKDOWN_VAULT_DIR_1')}/Workouts"),
+        "recipes": get_files_in_dir(os.getenv('OS_MARKDOWN_BASE_DIR'), os.getenv('OS_MARKDOWN_VAULT_DIR_2')),
     }
     # Walk through all files
     for path in pattern_paths:
@@ -51,7 +50,8 @@ def render_jinja2_templates(output_path: str, pattern_paths: list[str]) -> None:
                 out_file.write_text(rendered)
                 logging.info(f"Rendered: {out_file}")
 
-def get_files_in_dir(root_dir: str) -> list[str]:
+def get_files_in_dir(base_path: str, dir_path: str) -> list[str]:
+    root_dir = f"{base_path}/{dir_path}"
     logging.info(f"Getting files in: {root_dir}")
     res = []
     if not os.path.exists(root_dir):
@@ -61,6 +61,8 @@ def get_files_in_dir(root_dir: str) -> list[str]:
     for root, dirs, files in os.walk(root_dir):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
         for file in files:
-            res.append(os.path.join(root, file))
+            if file.endswith(".md"):
+                file_path = os.path.join(root, file)
+                res.append(file_path.replace(f"{base_path}/", ""))
 
     return res
